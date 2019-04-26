@@ -1,0 +1,16 @@
+{
+	"name": "example",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "tsc --watch"
+	},
+	"dependencies": {
+		"@hediet/std": "0.4.0",
+		"typescript": "^3.4.4"
+	},
+	"devDependencies": {
+		"webpack": "^4.30.0",
+		"webpack-cli": "^3.3.1",
+		"webpack-dev-server": "^3.3.1"
+	}
+}
