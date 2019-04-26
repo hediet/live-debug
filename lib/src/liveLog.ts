@@ -25,10 +25,11 @@ export const liveLogContract = contract({
 
 const servers = new Set<typeof liveLogContract.TServerInterface>();
 
-registerLiveDebug(async (channel: TypedChannel, onClose: Promise<void>) => {
+registerLiveDebug((channel: TypedChannel, onClose: Promise<void>) => {
 	const { server } = liveLogContract.getServer(channel, {});
-	servers.add(server);
-	onClose.then(() => {
+	channel.onListening.then(async () => {
+		servers.add(server);
+		await onClose;
 		servers.delete(server);
 	});
 });
@@ -38,6 +39,7 @@ registerLiveDebug(async (channel: TypedChannel, onClose: Promise<void>) => {
  * Does only work well on NodeJS.
  */
 export async function liveLog(expression: any): Promise<void> {
+	StackTracey.resetCache();
 	const tracey = new StackTracey();
 	const parentFrame = tracey.withSources[1];
 	const filename = parentFrame.file;

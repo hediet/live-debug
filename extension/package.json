@@ -17,7 +17,7 @@
 	"version": "0.1.0",
 	"license": "MIT",
 	"dependencies": {
-		"@hediet/node-reload": "^0.3.1",
+		"@hediet/node-reload": "^0.4.0",
 		"@hediet/std": "^0.4.0",
 		"@hediet/typed-json-rpc": "^0.6.0",
 		"@hediet/typed-json-rpc-websocket-server": "^0.6.0",
@@ -30,7 +30,8 @@
 		"dev": "tsc --watch"
 	},
 	"activationEvents": [
-		"onLanguage:typescript"
+		"onLanguage:typescript",
+		"onCommand:node-reload-steps-vscode.run"
 	],
 	"contributes": {},
 	"main": "./dist/extension.js",

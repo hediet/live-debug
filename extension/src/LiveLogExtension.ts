@@ -8,14 +8,19 @@ export class LiveLogExtension extends DisposableComponent {
 
 	private decorationType = this.trackDisposable(
 		vscode.window.createTextEditorDecorationType({
-			after: { margin: "20px" },
+			rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
 		})
 	);
 
-	constructor() {
+	constructor(prev?: LiveLogExtension) {
 		super();
 
-		this.trackDisposable(
+		if (prev) {
+			this.logs = prev.logs;
+			this.updateAllText();
+		}
+
+		this.trackDisposable([
 			Server.instance.registerClientHandler((typedChannel, onClose) =>
 				liveLogContract.registerServer(typedChannel, {
 					logExpression: async args => {
@@ -35,14 +40,14 @@ export class LiveLogExtension extends DisposableComponent {
 						this.updateAllText();
 					},
 				})
-			)
-		);
-
-		this.trackDisposable(
+			),
 			vscode.window.onDidChangeVisibleTextEditors(e => {
 				this.updateAllText();
-			})
-		);
+			}),
+			vscode.workspace.onDidChangeTextDocument(e => {
+				this.updateAllText();
+			}),
+		]);
 	}
 
 	private updateAllText() {
@@ -61,35 +66,42 @@ export class LiveLogExtension extends DisposableComponent {
 			return;
 		}
 
-		const idByLine: { line: number; text: string }[] = [];
+		const idByLine: { position: vscode.Position; text: string }[] = [];
 
 		const txt = editor.document.getText();
-		const re = /(liveLogId\(\"(.*)\",)|(liveLog\()/g;
+		const re = /(liveLogId\(\"(.*)\",.*\);)|(liveLog\(.*\);)/g;
 		let m;
 		while ((m = re.exec(txt))) {
 			const line = editor.document.positionAt(m.index).line;
+			// const position = editor.document.lineAt(line).range.end;
+			const position = editor.document.positionAt(
+				m.index + m[0].length - 2
+			);
 			const logEntry = this.logs.getLiveLogForFileAndLine(
 				m[2],
 				curFilename,
 				line
 			);
 			if (logEntry) {
-				idByLine.push({ line, text: logEntry.text });
+				// ➜
+				idByLine.push({ position, text: `: ${logEntry.text}` });
 			}
 		}
 
 		editor.setDecorations(
 			this.decorationType,
 			idByLine.map(o => {
-				const lineEnd = editor.document.lineAt(o.line).range.end;
 				const hoverMessage = new vscode.MarkdownString();
 				hoverMessage.isTrusted = true;
+				hoverMessage.appendText(o.text);
 
 				const dec: vscode.DecorationOptions = {
-					range: new vscode.Range(lineEnd, lineEnd),
+					range: new vscode.Range(o.position, o.position),
 					renderOptions: {
 						after: {
 							contentText: o.text,
+							// margin: "10px",
+							color: "blue",
 						},
 					},
 					hoverMessage,

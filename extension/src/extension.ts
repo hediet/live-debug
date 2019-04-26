@@ -9,6 +9,7 @@ import { DisposableComponent } from "@hediet/std/disposable";
 import * as vscode from "vscode";
 import { Server } from "./server";
 import { getLiveDebugApi } from "@hediet/live-debug";
+import { LiveLogExtension } from "./LiveLogExtension";
 const debug =
 	process.execArgv.filter(v => v.indexOf("--inspect-brk") === 0).length > 0;
 if (debug) {
@@ -26,11 +27,20 @@ export function activate(context: vscode.ExtensionContext) {
 		)
 	);
 
+	let logExt: LiveLogExtension | undefined;
 	hotRequire<typeof import("./LiveLogExtension")>(
 		module,
 		"./LiveLogExtension",
 		LiveLogExtension => {
-			return new LiveLogExtension.LiveLogExtension();
+			return (logExt = new LiveLogExtension.LiveLogExtension(logExt));
+		}
+	);
+
+	hotRequire<typeof import("./StepsExtension")>(
+		module,
+		"./StepsExtension",
+		StepsExtension => {
+			return new StepsExtension.StepsExtension();
 		}
 	);
 

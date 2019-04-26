@@ -1,2 +1,2 @@
 export * from "./liveDebug";
-export * from "./logLive";
+export * from "./liveLog";

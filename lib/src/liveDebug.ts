@@ -42,13 +42,14 @@ export function getLiveDebugApi(): LiveDebugApi {
 
 function initAndProcessLiveDebugApi() {
 	const api = getLiveDebugApi();
+	const oldConnectTo = api.connectTo;
 	api.connectTo = port => {
 		connectTo(port);
+		oldConnectTo(port);
 	};
 	for (const server of api.pendingServers) {
-		api.connectTo(server.port);
+		connectTo(server.port);
 	}
-	api.pendingServers.length = 0;
 }
 
 initAndProcessLiveDebugApi();
@@ -90,7 +91,6 @@ async function connectTo(port: number) {
 				initializer(typedChannel, stream.onClosed);
 			})
 		);
-
 		typedChannel.startListen();
 
 		await stream.onClosed;

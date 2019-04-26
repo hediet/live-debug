@@ -1,4 +1,4 @@
-import { debuggerConnectionContract } from "@hediet/node-reload";
+import { StepsLiveDebugContract } from "@hediet/node-reload";
 import { DisposableComponent } from "@hediet/std/disposable";
 import * as vscode from "vscode";
 import { Server } from "./server";
@@ -19,83 +19,75 @@ export class StepsExtension extends DisposableComponent {
 		})
 	);
 
-	private stepStates: {
-		id: string;
-		state: "notRun" | "running" | "ran" | "undoing" | "undone";
-	}[] = [];
+	private clients = new Set<{
+		state: StepState[];
+		client: typeof StepsLiveDebugContract.TClientInterface;
+	}>();
 
 	constructor() {
 		super();
 
-		this.updateText();
+		this.updateDecorationsForAllEditors();
 
-		this.trackDisposable(
-			vscode.window.onDidChangeActiveTextEditor(e => {
-				this.updateText();
-			})
-		);
-
-		const clients = new Set<{ state: StepState[] }>();
-		this.trackDisposable(
-			Server.instance.registerClientHandler((typedChannel, onClose) => {
-				const clientState = { state: new Array<StepState>() };
-				clients.add(clientState);
-				debuggerConnectionContract.registerServer(typedChannel, {
-					updateState: ({ newState }) => {
-						clientState.state = newState;
-						this.stepStatesChangedEmitter.emit(
-							new Array<StepState>().concat(
-								...[...clients].map(c => c.state)
+		this.trackDisposable([
+			Server.instance.registerClientHandler(
+				(typedChannel, onClose) =>
+					new DisposableComponent(track => {
+						const { client } = track(
+							StepsLiveDebugContract.registerServer(
+								typedChannel,
+								{
+									updateState: ({ newState }) => {
+										clientState.state = newState;
+										this.updateDecorationsForAllEditors();
+									},
+								}
 							)
 						);
-					},
-				});
-				onClose.then(() => {
-					clients.delete(clientState);
-					this.stepStatesChangedEmitter.emit(
-						new Array<StepState>().concat(
-							...[...clients].map(c => c.state)
-						)
-					);
-				});
-			})
-		);
+						const clientState = {
+							state: new Array<StepState>(),
+							client,
+						};
+						this.clients.add(clientState);
 
-		this.trackDisposable(
+						typedChannel.onListening.then(() =>
+							client.requestUpdate({})
+						);
+
+						onClose.then(() => {
+							this.clients.delete(clientState);
+							this.updateDecorationsForAllEditors();
+						});
+					})
+			),
 			vscode.commands.registerCommand(runCmdId, (args: RunCmdIdArgs) => {
 				this.runStep(args.stepId, args.controllerId);
-			})
-		);
-
-		this.trackDisposable(
-			vscode.debug.onDidChangeActiveDebugSession(e =>
-				this.connectClient()
-			)
-		);
-
-		if (vscode.debug.activeDebugSession) {
-			this.connectClient();
-		}
-
-		this.trackDisposable(
+			}),
+			vscode.window.onDidChangeVisibleTextEditors(e => {
+				this.updateDecorationsForAllEditors();
+			}),
 			vscode.workspace.onDidChangeTextDocument(e => {
-				const editor = vscode.window.activeTextEditor;
-				if (!editor) {
-					return;
+				for (const editor of vscode.window.visibleTextEditors) {
+					if (editor.document === e.document) {
+						this.updateDecorations(editor);
+					}
 				}
-				if (e.document === editor.document) {
-					this.updateText();
-				}
-			})
-		);
+			}),
+		]);
 	}
 
-	private updateText() {
-		const editor = vscode.window.activeTextEditor;
-		if (!editor) {
-			return;
+	private updateDecorationsForAllEditors() {
+		for (const editor of vscode.window.visibleTextEditors) {
+			this.updateDecorations(editor);
 		}
-		if (this.stepStates.length === 0) {
+	}
+
+	private updateDecorations(editor: vscode.TextEditor) {
+		const stepStates = new Array<StepState>().concat(
+			...[...this.clients].map(c => c.state)
+		);
+
+		if (stepStates.length === 0) {
 			editor.setDecorations(this.decorationType, []);
 			return;
 		}
@@ -108,7 +100,7 @@ export class StepsExtension extends DisposableComponent {
 		while ((m = re.exec(txt))) {
 			const line = editor.document.positionAt(m.index).line;
 			const id = m[1];
-			const state = this.stepStates.find(p => p.id === id);
+			const state = stepStates.find(p => p.id === id);
 			if (state) {
 				let text: string = "";
 				switch (state.state) {
@@ -161,5 +153,9 @@ export class StepsExtension extends DisposableComponent {
 	private async runStep(
 		stepId: string,
 		controllerId?: number
-	): Promise<void> {}
+	): Promise<void> {
+		for (const c of this.clients) {
+			c.client.runToStepIncluding({ stepId });
+		}
+	}
 }
