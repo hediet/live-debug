@@ -1,14 +1,26 @@
-# Hot Reloading for NodeJS - Step Execution State Visualizer
+# Live Debug
 
 [![](https://img.shields.io/twitter/follow/hediet_dev.svg?style=social)](https://twitter.com/intent/follow?screen_name=hediet_dev)
 
-This is the vscode extension for `@hediet/node-reload`.
+This is the VSCode extension for `@hediet/live-debug`, `@hediet/node-reload`
+and other libraries that implement live debug.
+
+## Live Logging
+
+Just use `liveLog(expression)` from `@hediet/live-debug`
+and it shows you the last value of the expression inline:
+
+![Demo](./docs/demo-live-log.gif)
+
+Works for both NodeJS and web applications.
+
+## Steps Execution State Visualizer
 
 It displays the current executation state when **simply debugging**
 a nodejs application that uses the step execution controller
-(see `runExportedSteps`).
+(see `runExportedSteps` in `@hediet/node-reload`).
 
-## Example
+### Example
 
 If you have this typescript code:
 
@@ -49,16 +61,18 @@ export function getSteps(): Steps {
 
 And debug it using vscode and having this extension installed, you can see the executation state of each step:
 
-![Execution state](./StepsVsCode/docs/demo-vscode-steps1.gif)
+![Execution state](./docs/demo-vscode-steps1.gif)
 
 You can also run a specific step:
 
-![Move to step](./StepsVsCode/docs/demo-vscode-steps2.gif)
+![Move to step](./docs/demo-vscode-steps2.gif)
+
+It integrates very well with puppeteer:
+
+![Puppeteer Demo](./docs/demo-puppeteer.gif)
 
 ## How does it work
 
-When debugging a node application using the `node` or `node2` debug adapter,
-this extension launches an RPC server and instructs the debugee to connect to it.
-
-The debugee then sends the current execution state of all steps
-whenether anything changes to the extension.
+When debugging a node application using the `node`, `node2` or `chrome` debug adapter,
+this extension launches an RPC server and
+instructs the `live-debug` library instance of the debugee to connect to it.
