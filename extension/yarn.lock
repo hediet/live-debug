@@ -13,7 +13,7 @@
     stacktracey "^1.2.110"
     ws "^6.2.1"
 
-"@hediet/node-reload@^0.4.0":
+"@hediet/node-reload@^0.4.2":
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/@hediet/node-reload/-/node-reload-0.4.2.tgz#ee52f64e57d68bb90965cf94a1f96a9c92cc2bc9"
   integrity sha512-FAklTigS+nRecwQooPEyXrsIoCAvqBTSqcgx/2otxyFMQmu0hHZsAFPCnRqyht+LSDdFrISIlH+mDd2xYhC4HA==

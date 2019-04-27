@@ -1,7 +1,7 @@
 {
 	"name": "@hediet/live-debug",
 	"description": "Provides services to send events to a debugger that supports live debug.",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"author": {
@@ -10,9 +10,9 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/hediet/js-live-debug.git"
+		"url": "https://github.com/hediet/live-debug.git"
 	},
-	"homepage": "https://github.com/hediet/js-live-debug",
+	"homepage": "https://github.com/hediet/live-debug",
 	"license": "MIT",
 	"publishConfig": {
 		"access": "public",

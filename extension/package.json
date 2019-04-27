@@ -14,7 +14,7 @@
 		"url": "https://github.com/hediet/live-debug.git"
 	},
 	"homepage": "https://github.com/hediet/live-debug",
-	"version": "0.1.0",
+	"version": "0.4.1",
 	"license": "MIT",
 	"dependencies": {
 		"@hediet/node-reload": "^0.4.2",
