@@ -7,22 +7,22 @@ import { WebSocketStream } from "@hediet/typed-json-rpc-websocket";
 import { EventEmitter } from "@hediet/std/events";
 import { disposeOnReturn } from "@hediet/std/disposable";
 
+/**
+ * @internal
+ * Used from the vsode extension to make the debuggee connect to its RPC server.
+ */
 export interface LiveDebugApi {
+	/**
+	 * Connect requests that haven't been processed yet.
+	 */
 	pendingServers: { port: number }[];
+	/**
+	 * Instructs the debugee to connect to the live debug RPC server.
+	 */
 	connectTo: (port: number) => void;
 }
-
 /**
- * A callback to register services accessible
- * and with the access to the debugger.
- */
-export type ClientInitializer = (
-	channel: TypedChannel,
-	onClosed: Promise<void>
-) => void;
-
-/**
- * For internal use only.
+ * @internal
  * The source of the function is evaluated in the debug
  * session from the vscode extension.
  */
@@ -40,6 +40,8 @@ export function getLiveDebugApi(): LiveDebugApi {
 	return liveDebugApi;
 }
 
+initAndProcessLiveDebugApi();
+
 function initAndProcessLiveDebugApi() {
 	const api = getLiveDebugApi();
 	const oldConnectTo = api.connectTo;
@@ -52,7 +54,14 @@ function initAndProcessLiveDebugApi() {
 	}
 }
 
-initAndProcessLiveDebugApi();
+/**
+ * A callback to register services accessible
+ * and with the access to the debugger.
+ */
+export type ClientInitializer = (
+	channel: TypedChannel,
+	onClosed: Promise<void>
+) => void;
 
 const initializers = new Set<ClientInitializer>();
 const onNewInitializer = new EventEmitter<{ initializer: ClientInitializer }>();
@@ -73,18 +82,12 @@ async function connectTo(port: number) {
 		host: "localhost",
 	});
 
-	const channelFactory: ChannelFactory = {
-		createChannel: listener => {
-			const channel = new StreamBasedChannel(stream, listener, undefined);
-			return channel;
-		},
-	};
-
-	const typedChannel = new TypedChannel(channelFactory, undefined);
+	const typedChannel = TypedChannel.fromStream(stream, undefined);
 
 	for (const init of initializers) {
 		init(typedChannel, stream.onClosed);
 	}
+
 	disposeOnReturn(async track => {
 		track(
 			onNewInitializer.sub(({ initializer }) => {
