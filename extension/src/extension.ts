@@ -10,6 +10,8 @@ import * as vscode from "vscode";
 import { Server } from "./server";
 import { getLiveDebugApi } from "@hediet/live-debug";
 import { LiveLogExtension } from "./LiveLogExtension";
+import { wait } from "@hediet/std/timer";
+
 const debug =
 	process.execArgv.filter(v => v.indexOf("--inspect-brk") === 0).length > 0;
 if (debug) {
@@ -71,20 +73,36 @@ export class ConnectClientExtension extends DisposableComponent {
 	}
 
 	private async connectClient(): Promise<void> {
-		const e = vscode.debug.activeDebugSession;
+		const s = vscode.debug.activeDebugSession;
 		if (
-			e &&
-			(e.type === "node" || e.type === "node2" || e.type === "chrome")
+			s &&
+			(s.type === "extensionHost" ||
+				s.type === "node" ||
+				s.type === "node2" ||
+				s.type === "chrome")
 		) {
 			try {
-				const r = await e.customRequest("evaluate", {
-					expression: `(${getLiveDebugApi.toString()})().connectTo(${
-						Server.instance.port
-					});`,
-				});
+				await this.sendDebugRequest(s);
 			} catch (e) {
-				console.error(e);
+				if (e.message === "not connected to runtime") {
+					console.log("Retrying");
+					await wait(1000);
+					try {
+						await this.sendDebugRequest(s);
+					} catch (e) {
+						console.error(e);
+					}
+				} else {
+					console.error(e);
+				}
 			}
 		}
+	}
+
+	private async sendDebugRequest(session: vscode.DebugSession) {
+		const apiStr = getLiveDebugApi.toString();
+		const r = await session.customRequest("evaluate", {
+			expression: `(${apiStr})().connectTo(${Server.instance.port});`,
+		});
 	}
 }
