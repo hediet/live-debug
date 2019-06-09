@@ -1,7 +1,7 @@
 {
 	"name": "@hediet/live-debug",
 	"description": "Provides services to send events to a debugger that supports live debug.",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"author": {
