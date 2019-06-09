@@ -5,7 +5,7 @@ import {
 	getReloadCount,
 	hotRequire,
 } from "@hediet/node-reload";
-import { DisposableComponent } from "@hediet/std/disposable";
+import { Disposable } from "@hediet/std/disposable";
 import * as vscode from "vscode";
 import { Server } from "./server";
 import { getLiveDebugApi } from "@hediet/live-debug";
@@ -49,19 +49,19 @@ export function activate(context: vscode.ExtensionContext) {
 	return {};
 }
 
-export class ConnectClientExtension extends DisposableComponent {
-	constructor() {
-		super();
+export class ConnectClientExtension {
+	readonly dispose = Disposable.fn();
 
+	constructor() {
 		if (getReloadCount(module) > 0) {
-			this.trackDisposable(
+			this.dispose.track(
 				vscode.window.setStatusBarMessage(
 					"Reloads: " + getReloadCount(module)
 				)
 			);
 		}
 
-		this.trackDisposable(
+		this.dispose.track(
 			vscode.debug.onDidChangeActiveDebugSession(e =>
 				this.connectClient()
 			)

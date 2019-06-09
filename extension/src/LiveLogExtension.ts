@@ -1,26 +1,25 @@
-import { DisposableComponent } from "@hediet/std/disposable";
 import { liveLogContract } from "@hediet/live-debug";
 import { Server } from "./server";
 import * as vscode from "vscode";
+import { Disposable } from "@hediet/std/disposable";
 
-export class LiveLogExtension extends DisposableComponent {
+export class LiveLogExtension {
+	readonly dispose = Disposable.fn();
 	private readonly logs = new LiveLogs();
 
-	private decorationType = this.trackDisposable(
+	private decorationType = this.dispose.track(
 		vscode.window.createTextEditorDecorationType({
 			rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
 		})
 	);
 
 	constructor(prev?: LiveLogExtension) {
-		super();
-
 		if (prev) {
 			this.logs = prev.logs;
 			this.updateAllText();
 		}
 
-		this.trackDisposable([
+		this.dispose.track([
 			Server.instance.registerClientHandler((typedChannel, onClose) =>
 				liveLogContract.registerServer(typedChannel, {
 					logExpression: async args => {

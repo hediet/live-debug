@@ -1,6 +1,5 @@
 import { startWebSocketServer } from "@hediet/typed-json-rpc-websocket-server";
 import {
-	DisposableComponent,
 	disposeOnReturn,
 	dispose,
 	DisposableLike,
@@ -44,12 +43,13 @@ function setAndDeleteOnDispose(
 	}
 }
 
-export class Server extends DisposableComponent {
+export class Server {
 	static instance: Server = new Server();
 
 	public readonly port: number;
 	private readonly handler = new Set<Handler>();
 	private readonly clients = new Set<Client>();
+	private dispose = Disposable.fn();
 
 	private register(client: Client, handler: Handler) {
 		const disposeHandlerResult = Disposable.create(
@@ -66,7 +66,7 @@ export class Server extends DisposableComponent {
 	}
 
 	public registerClientHandler(handlerFn: ClientHandlerFn): Disposable {
-		return new DisposableComponent(track => {
+		return Disposable.fn(track => {
 			const handler: Handler = {
 				handlerFn: handlerFn,
 				disposables: new Set(),
@@ -80,8 +80,7 @@ export class Server extends DisposableComponent {
 	}
 
 	constructor() {
-		super();
-		const server = this.trackDisposable(
+		const server = this.dispose.track(
 			startWebSocketServer({ port: 0 }, async stream =>
 				disposeOnReturn(async track => {
 					const typedChannel = TypedChannel.fromStream(

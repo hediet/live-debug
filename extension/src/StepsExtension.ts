@@ -1,5 +1,5 @@
 import { StepsLiveDebugContract } from "@hediet/node-reload";
-import { DisposableComponent } from "@hediet/std/disposable";
+import { Disposable } from "@hediet/std/disposable";
 import * as vscode from "vscode";
 import { Server } from "./server";
 
@@ -12,8 +12,9 @@ export interface StepState {
 	state: "notRun" | "running" | "ran" | "undoing" | "undone";
 }
 
-export class StepsExtension extends DisposableComponent {
-	private decorationType = this.trackDisposable(
+export class StepsExtension implements Disposable {
+	public dispose = Disposable.fn();
+	private decorationType = this.dispose.track(
 		vscode.window.createTextEditorDecorationType({
 			after: { margin: "20px" },
 		})
@@ -25,40 +26,34 @@ export class StepsExtension extends DisposableComponent {
 	}>();
 
 	constructor() {
-		super();
-
 		this.updateDecorationsForAllEditors();
 
-		this.trackDisposable([
-			Server.instance.registerClientHandler(
-				(typedChannel, onClose) =>
-					new DisposableComponent(track => {
-						const { client } = track(
-							StepsLiveDebugContract.registerServer(
-								typedChannel,
-								{
-									updateState: ({ newState }) => {
-										clientState.state = newState;
-										this.updateDecorationsForAllEditors();
-									},
-								}
-							)
-						);
-						const clientState = {
-							state: new Array<StepState>(),
-							client,
-						};
-						this.clients.add(clientState);
+		this.dispose.track([
+			Server.instance.registerClientHandler((typedChannel, onClose) =>
+				Disposable.fn(track => {
+					const { client } = track(
+						StepsLiveDebugContract.registerServer(typedChannel, {
+							updateState: ({ newState }) => {
+								clientState.state = newState;
+								this.updateDecorationsForAllEditors();
+							},
+						})
+					);
+					const clientState = {
+						state: new Array<StepState>(),
+						client,
+					};
+					this.clients.add(clientState);
 
-						typedChannel.onListening.then(() =>
-							client.requestUpdate({})
-						);
+					typedChannel.onListening.then(() =>
+						client.requestUpdate({})
+					);
 
-						onClose.then(() => {
-							this.clients.delete(clientState);
-							this.updateDecorationsForAllEditors();
-						});
-					})
+					onClose.then(() => {
+						this.clients.delete(clientState);
+						this.updateDecorationsForAllEditors();
+					});
+				})
 			),
 			vscode.commands.registerCommand(runCmdId, (args: RunCmdIdArgs) => {
 				this.runStep(args.stepId, args.controllerId);
