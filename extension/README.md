@@ -76,3 +76,7 @@ It integrates very well with puppeteer:
 When debugging a node application using the `node`, `node2` or `chrome` debug adapter,
 this extension launches an RPC server and
 instructs the `live-debug` library instance of the debugee to connect to it.
+
+## ChangeLog
+
+-   0.5.0 Version Upgrade

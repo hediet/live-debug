@@ -1,8 +1,4 @@
-import {
-	TypedChannel,
-	ChannelFactory,
-	StreamBasedChannel,
-} from "@hediet/typed-json-rpc";
+import { TypedChannel } from "@hediet/typed-json-rpc";
 import { WebSocketStream } from "@hediet/typed-json-rpc-websocket";
 import { EventEmitter } from "@hediet/std/events";
 import { disposeOnReturn } from "@hediet/std/disposable";

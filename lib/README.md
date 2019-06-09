@@ -6,3 +6,7 @@ TODO: Improve Readme.
 See [`./src`](./src) for the source, it is documented and there isn't much.
 
 You can get the VS Code extension [here](https://marketplace.visualstudio.com/items?itemName=hediet.live-debug-vscode).
+
+## ChangeLog
+
+-   0.5.0 Version Upgrade
