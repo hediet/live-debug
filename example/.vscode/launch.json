@@ -6,17 +6,20 @@
 	"configurations": [
 		{
 			"type": "chrome",
-			"request": "attach",
+			"request": "launch",
 			"name": "Attach to Chrome",
 			"port": 9222,
-			"webRoot": "${workspaceFolder}"
+			"webRoot": "${workspaceFolder}",
+			"url": "http://localhost:8080",
+			"preLaunchTask": "npm: dev-web"
 		},
 		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
 			"program": "${workspaceFolder}\\src\\index.ts",
-			"outFiles": ["${workspaceFolder}/dist/**/*.js"]
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
+			"preLaunchTask": "npm: dev"
 		}
 	]
 }

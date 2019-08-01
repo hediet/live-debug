@@ -9,7 +9,10 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceFolder}/extension"],
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}/extension",
+				"${workspaceFolder}/example"
+			],
 			"outFiles": ["${workspaceFolder}/extension/dist/**/*.js"]
 		}
 	]

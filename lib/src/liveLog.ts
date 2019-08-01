@@ -1,22 +1,25 @@
-import { TypedChannel } from "@hediet/typed-json-rpc";
+import {
+	TypedChannel,
+	contract,
+	notificationContract,
+	types,
+} from "@hediet/typed-json-rpc";
 import { registerLiveDebug } from ".";
-import { contract, notificationContract } from "@hediet/typed-json-rpc";
-import { type, string, Integer } from "io-ts";
 import * as StackTracey from "stacktracey";
 
 export const liveLogContract = contract({
 	server: {
 		logExpression: notificationContract({
-			params: type({
-				filename: string,
-				lineNumber: Integer,
-				value: string,
+			params: types.type({
+				filename: types.string,
+				lineNumber: types.Integer,
+				value: types.string,
 			}),
 		}),
 		logExpressionById: notificationContract({
-			params: type({
-				id: string,
-				value: string,
+			params: types.type({
+				id: types.string,
+				value: types.string,
 			}),
 		}),
 	},
@@ -37,6 +40,7 @@ registerLiveDebug((channel: TypedChannel, onClose: Promise<void>) => {
 /**
  * Logs an expression and tracks the source using source maps.
  * Does only work well on NodeJS.
+ * For TypeScript, you must have source maps enabled.
  */
 export async function liveLog(expression: any): Promise<void> {
 	StackTracey.resetCache();

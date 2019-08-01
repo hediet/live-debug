@@ -43,6 +43,8 @@ function initAndProcessLiveDebugApi() {
 	const oldConnectTo = api.connectTo;
 	api.connectTo = port => {
 		connectTo(port);
+		// If multiple versions of live debug are loaded,
+		// we want each instance to connect to the debugger server.
 		oldConnectTo(port);
 	};
 	for (const server of api.pendingServers) {
@@ -51,16 +53,20 @@ function initAndProcessLiveDebugApi() {
 }
 
 /**
- * A callback to register services accessible
- * and with the access to the debugger.
+ * A callback to register services
+ * accessible from and with access to the debugger.
  */
 export type ClientInitializer = (
 	channel: TypedChannel,
 	onClosed: Promise<void>
 ) => void;
 
+// Initializers that are processed when a new server is available.
 const initializers = new Set<ClientInitializer>();
-const onNewInitializer = new EventEmitter<{ initializer: ClientInitializer }>();
+// Initializers that are processed for already connected servers.
+const onNewInitializer = new EventEmitter<{
+	initializer: ClientInitializer;
+}>();
 
 /**
  * Registers a debug service.

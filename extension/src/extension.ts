@@ -3,7 +3,6 @@ import {
 	hotRequireExportedFn,
 	registerUpdateReconciler,
 	getReloadCount,
-	hotRequire,
 } from "@hediet/node-reload";
 import { Disposable } from "@hediet/std/disposable";
 import * as vscode from "vscode";
@@ -11,14 +10,16 @@ import { Server } from "./server";
 import { getLiveDebugApi } from "@hediet/live-debug";
 import { LiveLogExtension } from "./LiveLogExtension";
 import { wait } from "@hediet/std/timer";
+import { StepsExtension } from "./StepsExtension";
 
-const debug =
-	process.execArgv.filter(v => v.indexOf("--inspect-brk") === 0).length > 0;
-if (debug) {
+console.log("env", process.env.NODE_ENV);
+if (process.env.NODE_ENV !== "production") {
 	enableHotReload({ entryModule: module });
 }
 
 registerUpdateReconciler(module);
+
+export { StepsExtension, LiveLogExtension };
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
@@ -30,20 +31,16 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	let logExt: LiveLogExtension | undefined;
-	hotRequire<typeof import("./LiveLogExtension")>(
+	hotRequireExportedFn(
 		module,
-		"./LiveLogExtension",
-		LiveLogExtension => {
-			return (logExt = new LiveLogExtension.LiveLogExtension(logExt));
-		}
+		LiveLogExtension,
+		LiveLogExtension => (logExt = new LiveLogExtension(logExt))
 	);
 
-	hotRequire<typeof import("./StepsExtension")>(
+	hotRequireExportedFn(
 		module,
-		"./StepsExtension",
-		StepsExtension => {
-			return new StepsExtension.StepsExtension();
-		}
+		StepsExtension,
+		StepsExtension => new StepsExtension()
 	);
 
 	return {};
@@ -81,20 +78,24 @@ export class ConnectClientExtension {
 				s.type === "node2" ||
 				s.type === "chrome")
 		) {
-			try {
-				await this.sendDebugRequest(s);
-			} catch (e) {
-				if (e.message === "not connected to runtime") {
-					console.log("Retrying");
-					await wait(1000);
-					try {
-						await this.sendDebugRequest(s);
-					} catch (e) {
-						console.error(e);
+			let i = 1;
+			while (true) {
+				// wait first as VS Code immediately stopped debugging otherwise.
+				await wait(1000);
+				try {
+					await this.sendDebugRequest(s);
+				} catch (e) {
+					if (e.message === "not connected to runtime" && i <= 10) {
+						console.error(
+							`Cought error 'not connected to runtime', repeat (${i})`
+						);
+						i++;
+						continue;
 					}
-				} else {
-					console.error(e);
+					console.error(`Error while sending command to debuggee`, e);
 				}
+
+				break;
 			}
 		}
 	}

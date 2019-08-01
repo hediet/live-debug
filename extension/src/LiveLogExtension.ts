@@ -2,6 +2,7 @@ import { liveLogContract } from "@hediet/live-debug";
 import { Server } from "./server";
 import * as vscode from "vscode";
 import { Disposable } from "@hediet/std/disposable";
+import { normalize } from "path";
 
 export class LiveLogExtension {
 	readonly dispose = Disposable.fn();
@@ -119,8 +120,18 @@ class LiveLogs {
 	private readonly liveLogs = new Map<string, Map<number, LiveLog>>();
 	private readonly liveLogsById = new Map<string, LiveLog>();
 
+	private normalizeFilename(filename: string): string {
+		filename = normalize(filename);
+		if (process.platform === "win32") {
+			// VS Code has no consistent file name casing for windows.
+			return filename.toLowerCase();
+		} else {
+			return filename;
+		}
+	}
+
 	public getLiveLogsForFile(filename: string): LiveLog[] {
-		let m = this.liveLogs.get(filename);
+		let m = this.liveLogs.get(this.normalizeFilename(filename));
 		return (m ? [...m.values()] : []).concat([
 			...this.liveLogsById.values(),
 		]);
@@ -138,7 +149,7 @@ class LiveLogs {
 			}
 		}
 
-		let m = this.liveLogs.get(filename);
+		let m = this.liveLogs.get(this.normalizeFilename(filename));
 		if (!m) {
 			return undefined;
 		}
@@ -146,10 +157,10 @@ class LiveLogs {
 	}
 
 	public updateLiveLog(filename: string, line: number, log: LiveLog) {
-		let m = this.liveLogs.get(filename);
+		let m = this.liveLogs.get(this.normalizeFilename(filename));
 		if (!m) {
 			m = new Map<number, LiveLog>();
-			this.liveLogs.set(filename, m);
+			this.liveLogs.set(this.normalizeFilename(filename), m);
 		}
 
 		m.set(line, log);

@@ -2,10 +2,11 @@
 	"name": "example",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "tsc --watch"
+		"dev": "tsc --watch",
+		"dev-web": "webpack-dev-server ./src/index.ts"
 	},
 	"dependencies": {
-		"@hediet/std": "0.4.0",
+		"@hediet/std": "0.6.0",
 		"typescript": "^3.4.4"
 	},
 	"devDependencies": {

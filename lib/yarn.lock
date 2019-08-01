@@ -22,10 +22,18 @@
     "@types/ws" "^6.0.1"
     isomorphic-ws "^4.0.1"
 
-"@hediet/typed-json-rpc@^0.7.5", "@hediet/typed-json-rpc@^0.7.6":
+"@hediet/typed-json-rpc@^0.7.5":
   version "0.7.6"
   resolved "https://registry.yarnpkg.com/@hediet/typed-json-rpc/-/typed-json-rpc-0.7.6.tgz#2c00e82816eae4dc2a1c9f4b87bafec3b11eb76a"
   integrity sha512-9skYQLIodwRhAokToa0YjIhRIg3cxTr+udlDpsP4AfT2NvG70w3NSwRmEilskN77OQiN7M4OuWzJ3ThGzkKpXA==
+  dependencies:
+    "@hediet/std" "^0.6.0"
+    io-ts "^1.8.6"
+
+"@hediet/typed-json-rpc@^0.7.7":
+  version "0.7.7"
+  resolved "https://registry.yarnpkg.com/@hediet/typed-json-rpc/-/typed-json-rpc-0.7.7.tgz#bd7e586ad5c0480f7bd6bc40d6ad202e0a80b54d"
+  integrity sha512-lyjbVqt+mFrRS0+2cOVDithtfG9gfRV5CJMVDwV+F2gfCUjTe1aZu4xObpDDLfxfoZOGgtPNNg6jCNhvXSxQHg==
   dependencies:
     "@hediet/std" "^0.6.0"
     io-ts "^1.8.6"

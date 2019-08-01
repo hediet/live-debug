@@ -1,7 +1,7 @@
 {
 	"name": "@hediet/live-debug",
 	"description": "Provides services to send events to a debugger that supports live debug.",
-	"version": "0.5.2",
+	"version": "0.6.0",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"author": {
@@ -27,9 +27,9 @@
 	},
 	"dependencies": {
 		"@hediet/std": "^0.6.0",
-		"@hediet/typed-json-rpc": "^0.7.6",
+		"@hediet/typed-json-rpc": "^0.7.7",
 		"@hediet/typed-json-rpc-websocket": "^0.7.7",
-		"stacktracey": "^1.2.112",
-		"ws": "^7.0.0"
+		"stacktracey": "^1.2.117",
+		"ws": "^7.1.1"
 	}
 }
